@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>망고하다 — 웰다잉 전문 플랫폼</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --bg:       #000000;
+      --surface:  #111111;
+      --border:   rgba(255,255,255,0.08);
+      --text:     #FFFFFF;
+      --muted:    rgba(255,255,255,0.50);
+      --muted2:   rgba(255,255,255,0.30);
+      --accent:   #D4844A;
+      --accent2:  #EAB87C;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Pretendard Variable', 'Pretendard', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+    html { scroll-behavior: smooth; }
+
+    .serif { font-family: 'Noto Serif KR', Georgia, serif; font-weight: 400; font-style: italic; }
+
+    /* 그라디언트 텍스트 */
+    .grad {
+      background: linear-gradient(135deg, var(--accent2) 0%, var(--accent) 55%, #B05A2A 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* 글래스 */
+    .glass {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+    }
+
+    /* 오브 */
+    .orb {
+      position: absolute; border-radius: 50%;
+      filter: blur(130px); pointer-events: none;
+    }
+
+    /* 리빌 */
+    [data-reveal] {
+      opacity: 0;
+      transition-property: opacity, transform, filter;
+      transition-timing-function: cubic-bezier(.22, 1, .36, 1);
+    }
+    [data-reveal].in {
+      opacity: 1 !important;
+      transform: none !important;
+      filter: none !important;
+    }
+
+    /* 인풋 */
+    .field {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: .875rem 1rem;
+      font-size: .9375rem;
+      color: var(--text);
+      font-family: inherit;
+      outline: none;
+      transition: border-color .2s, background .2s;
+    }
+    .field::placeholder { color: var(--muted2); }
+    .field:focus { border-color: var(--accent); background: rgba(212,132,74,.05); }
+    select.field option { background: #1a1a1a; }
+
+    /* 버튼 */
+    .btn-w {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .625rem 1.375rem;
+      background: #fff; color: #000;
+      font-size: .875rem; font-weight: 500; font-family: inherit;
+      border-radius: 9999px; border: none; cursor: pointer;
+      transition: opacity .2s;
+      text-decoration: none;
+    }
+    .btn-w:hover { opacity: .85; }
+
+    .btn-pill {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .625rem 1.375rem;
+      background: rgba(255,255,255,.08);
+      border: 1px solid var(--border);
+      color: var(--muted); font-size: .875rem; font-family: inherit;
+      border-radius: 9999px; cursor: pointer;
+      transition: background .2s, color .2s;
+      text-decoration: none;
+    }
+    .btn-pill:hover { background: rgba(255,255,255,.14); color: var(--text); }
+
+    /* 섹션 라벨 */
+    .section-label {
+      font-size: .6875rem; letter-spacing: .12em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 3rem;
+    }
+
+    /* 카드 기본 */
+    .card {
+      border-radius: 24px;
+      overflow: hidden;
+      position: relative;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════
+     NAV
+═══════════════════════════════════ -->
+<header id="nav" style="position:fixed;inset-inline:0;top:0;z-index:50;padding:.875rem 1.5rem;">
+  <div style="max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:3rem;">
+
+    <!-- 로고 -->
+    <a href="#hero" style="font-size:.9375rem;font-weight:700;color:#fff;text-decoration:none;letter-spacing:-.02em;">망고하다</a>
+
+    <!-- 중앙 pill nav (데스크톱) -->
+    <nav id="pill-nav" style="display:none;position:absolute;left:50%;transform:translateX(-50%);align-items:center;gap:1px;border-radius:9999px;padding:.375rem .5rem;border:1px solid var(--border);background:rgba(17,17,17,.75);backdrop-filter:blur(14px);">
+      <a href="#vision"   class="nav-a" style="border-radius:9999px;padding:.5rem 1.125rem;font-size:.8125rem;color:var(--muted);text-decoration:none;transition:background .15s,color .15s;">Vision</a>
+      <a href="#services" class="nav-a" style="border-radius:9999px;padding:.5rem 1.125rem;font-size:.8125rem;color:var(--muted);text-decoration:none;transition:background .15s,color .15s;">Services</a>
+      <a href="#contact"  class="nav-a" style="border-radius:9999px;padding:.5rem 1.125rem;font-size:.8125rem;color:var(--muted);text-decoration:none;transition:background .15s,color .15s;">Contact</a>
+    </nav>
+
+    <!-- 우측 -->
+    <div style="display:flex;align-items:center;gap:.75rem;">
+      <a href="#contact" class="btn-w" style="padding:.5rem 1.25rem;font-size:.8125rem;">문의하기</a>
+      <button id="mob-btn" onclick="toggleMob()" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:.25rem;display:block;">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- 모바일 메뉴 -->
+  <div id="mob-menu" style="display:none;margin-top:.5rem;border-radius:16px;border:1px solid var(--border);background:rgba(17,17,17,.95);backdrop-filter:blur(20px);overflow:hidden;">
+    <div style="display:flex;flex-direction:column;padding:.5rem;">
+      <a href="#vision"   onclick="toggleMob()" style="padding:.875rem 1rem;font-size:.9375rem;color:var(--muted);text-decoration:none;border-radius:10px;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">Vision</a>
+      <a href="#services" onclick="toggleMob()" style="padding:.875rem 1rem;font-size:.9375rem;color:var(--muted);text-decoration:none;border-radius:10px;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">Services</a>
+      <a href="#contact"  onclick="toggleMob()" style="padding:.875rem 1rem;font-size:.9375rem;color:var(--muted);text-decoration:none;border-radius:10px;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">Contact</a>
+    </div>
+  </div>
+</header>
+
+<style>
+  @media(min-width:768px){
+    #pill-nav { display:flex !important; }
+    #mob-btn  { display:none !important; }
+  }
+  .nav-a:hover { background:rgba(255,255,255,.10) !important; color:#fff !important; }
+</style>
+
+
+<!-- ═══════════════════════════════════
+     HERO
+═══════════════════════════════════ -->
+<section id="hero" style="position:relative;min-height:100svh;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 1.5rem;">
+
+  <!-- 앰비언트 오브 -->
+  <div class="orb" style="width:800px;height:800px;opacity:.35;background:radial-gradient(circle,rgba(212,132,74,.5) 0%,transparent 65%);top:-250px;left:50%;transform:translateX(-35%);"></div>
+  <div class="orb" style="width:500px;height:500px;opacity:.2;background:radial-gradient(circle,rgba(180,90,40,.6) 0%,transparent 65%);bottom:0;right:-100px;"></div>
+
+  <!-- 중앙 헤드라인 -->
+  <div style="text-align:center;padding:8rem 0 6rem;max-width:900px;position:relative;z-index:1;">
+
+    <h1
+      data-reveal data-y="-40" data-blur="16" data-dur="900"
+      style="font-size:clamp(3.5rem,9vw,8.5rem);font-weight:800;line-height:1.0;letter-spacing:-.04em;transform:translateY(-40px);filter:blur(16px);transition-duration:900ms;">
+      죽음을 준비하는<br>
+      <span class="serif" style="font-size:.92em;letter-spacing:-.02em;">가장 일상적인 방법.</span>
+    </h1>
+
+    <a href="#services"
+      data-reveal data-y="30" data-delay="250" data-blur="8" data-dur="800"
+      class="btn-w" style="margin-top:2.5rem;transform:translateY(30px);filter:blur(8px);transition-duration:800ms;">
+      서비스 알아보기
+      <span style="width:22px;height:22px;background:#000;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;">
+        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 17L17 7M17 7H7M17 7v10"/>
+        </svg>
+      </span>
+    </a>
+  </div>
+
+  <!-- 하단 좌/우 텍스트 (데스크톱) -->
+  <div style="position:absolute;bottom:2.5rem;left:2.5rem;right:2.5rem;z-index:1;display:flex;justify-content:space-between;align-items:flex-end;gap:2rem;">
+
+    <div
+      data-reveal data-y="20" data-delay="400" data-dur="700"
+      style="transform:translateY(20px);transition-duration:700ms;max-width:300px;">
+      <p style="font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.875rem;">웰다잉 전문 플랫폼</p>
+      <p style="font-size:.875rem;color:var(--muted);line-height:1.65;">일기처럼 매일 조금씩, 깊은 마음 속의 이야기를 남기는 것이 자연스러운 일상이 될 때 우리는 더 잘 살 수 있습니다.</p>
+    </div>
+
+    <div
+      data-reveal data-y="20" data-delay="500" data-dur="700"
+      style="transform:translateY(20px);transition-duration:700ms;text-align:right;max-width:280px;display:none;" id="hero-right">
+      <p style="font-size:.9375rem;line-height:1.5;color:#fff;margin-bottom:.75rem;">데일리 유언으로<br>오늘을 더 소중하게.</p>
+      <a href="#contact" style="font-size:.9375rem;color:#fff;text-decoration:underline;text-underline-offset:3px;opacity:.6;transition:opacity .2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.6'">기업 협업 문의 →</a>
+    </div>
+  </div>
+
+  <style>@media(min-width:768px){ #hero-right { display:block !important; } }</style>
+</section>
+
+
+<!-- ═══════════════════════════════════
+     VISION
+═══════════════════════════════════ -->
+<section id="vision" style="padding:7rem 1.5rem;position:relative;overflow:hidden;">
+  <div class="orb" style="width:600px;height:600px;opacity:.18;background:radial-gradient(circle,rgba(212,132,74,.6) 0%,transparent 65%);top:-80px;right:-150px;"></div>
+
+  <div style="max-width:1200px;margin:0 auto;position:relative;z-index:1;">
+    <p class="section-label" data-reveal data-y="16" data-dur="600" style="transform:translateY(16px);transition-duration:600ms;">Brand Vision</p>
+
+    <h2
+      data-reveal data-y="30" data-blur="12" data-delay="100" data-dur="800"
+      style="font-size:clamp(2.5rem,5.5vw,5.5rem);font-weight:800;line-height:1.05;letter-spacing:-.04em;margin-bottom:5rem;max-width:750px;transform:translateY(30px);filter:blur(12px);transition-duration:800ms;">
+      죽음을 이야기할 때,<br>
+      <span class="serif grad" style="font-size:.92em;">비로소 삶이 보입니다.</span>
+    </h2>
+
+    <div style="display:flex;flex-direction:column;gap:0;">
+
+      <div class="vision-row" data-reveal data-y="24" data-delay="150" data-dur="700" style="border-top:1px solid var(--border);padding:2.5rem 0;display:grid;gap:1.5rem;transform:translateY(24px);transition-duration:700ms;">
+        <div style="display:flex;gap:1.25rem;">
+          <span style="font-size:.6875rem;font-family:monospace;color:var(--muted2);flex-shrink:0;margin-top:.2rem;">01</span>
+          <div>
+            <h3 style="font-size:1.0625rem;font-weight:700;margin-bottom:.625rem;">일기처럼 남기는 유언</h3>
+            <p style="font-size:.9rem;color:var(--muted);line-height:1.75;max-width:560px;">거창한 준비가 아닌, 매일 조금씩. 오늘 하루 감사했던 일, 사랑하는 사람에게 전하고 싶은 말을 기록합니다. 유언은 마지막이 아니라 일상 속 작은 습관에서 시작됩니다.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="vision-row" data-reveal data-y="24" data-delay="250" data-dur="700" style="border-top:1px solid var(--border);padding:2.5rem 0;display:grid;gap:1.5rem;transform:translateY(24px);transition-duration:700ms;">
+        <div style="display:flex;gap:1.25rem;">
+          <span style="font-size:.6875rem;font-family:monospace;color:var(--muted2);flex-shrink:0;margin-top:.2rem;">02</span>
+          <div>
+            <h3 style="font-size:1.0625rem;font-weight:700;margin-bottom:.625rem;">더 잘 살기 위한 준비</h3>
+            <p style="font-size:.9rem;color:var(--muted);line-height:1.75;max-width:560px;">죽음을 준비하는 사람은 오늘을 더 소중히 삽니다. 웰다잉은 삶의 마지막을 정리하는 것이 아니라, 지금 이 순간을 더 충만하게 살기 위한 웰라이프의 시작점입니다.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="vision-row" data-reveal data-y="24" data-delay="350" data-dur="700" style="border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:2.5rem 0;display:grid;gap:1.5rem;transform:translateY(24px);transition-duration:700ms;">
+        <div style="display:flex;gap:1.25rem;">
+          <span style="font-size:.6875rem;font-family:monospace;color:var(--muted2);flex-shrink:0;margin-top:.2rem;">03</span>
+          <div>
+            <h3 style="font-size:1.0625rem;font-weight:700;margin-bottom:.625rem;">깊은 마음을 전달하다</h3>
+            <p style="font-size:.9rem;color:var(--muted);line-height:1.75;max-width:560px;">평소에 미처 전하지 못한 진심, 사랑하는 이에게 남기고 싶은 이야기를 안전하게 보관합니다. 언젠가 가장 중요한 순간, 당신의 목소리가 전해질 수 있도록.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════
+     SERVICES
+═══════════════════════════════════ -->
+<section id="services" style="padding:7rem 1.5rem;position:relative;overflow:hidden;">
+  <div class="orb" style="width:550px;height:550px;opacity:.16;background:radial-gradient(circle,rgba(180,90,40,.7) 0%,transparent 65%);bottom:-100px;left:-80px;"></div>
+
+  <div style="max-width:1200px;margin:0 auto;position:relative;z-index:1;">
+    <p class="section-label" data-reveal data-y="16" data-dur="600" style="transform:translateY(16px);transition-duration:600ms;">Services</p>
+
+    <h2
+      data-reveal data-y="30" data-blur="12" data-delay="100" data-dur="800"
+      style="font-size:clamp(2.5rem,5.5vw,5.5rem);font-weight:800;line-height:1.05;letter-spacing:-.04em;margin-bottom:3.5rem;max-width:750px;transform:translateY(30px);filter:blur(12px);transition-duration:800ms;">
+      개인과 기업 모두를 위한<br>
+      <span class="serif" style="font-size:.92em;color:var(--muted);">웰다잉 서비스.</span>
+    </h2>
+
+    <!-- B2C 벤토 -->
+    <div style="margin-bottom:1rem;">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem;">
+        <span style="font-size:.6875rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);">B2C</span>
+        <span style="font-size:.75rem;color:var(--muted2);">일반 고객</span>
+      </div>
+      <div style="display:grid;gap:1rem;" id="b2c-grid">
+
+        <!-- 앱 카드 -->
+        <div class="card glass"
+          data-reveal data-x="-50" data-delay="200" data-dur="750"
+          style="padding:2.25rem 2rem 2.5rem;transform:translateX(-50px);transition-duration:750ms;">
+          <div style="position:absolute;top:0;right:0;width:250px;height:250px;background:radial-gradient(circle,rgba(212,132,74,.1) 0%,transparent 65%);pointer-events:none;border-radius:0;"></div>
+          <p style="font-size:.6875rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);margin-bottom:1rem;">App</p>
+          <h3 style="font-size:1.5rem;font-weight:700;letter-spacing:-.02em;margin-bottom:.75rem;">데일리 유언 앱</h3>
+          <p style="font-size:.9rem;color:var(--muted);line-height:1.7;margin-bottom:1.75rem;max-width:400px;">매일 짧은 유언을 기록하는 앱. 내 이야기를 안전하게 보관하고, 원하는 사람에게 전달할 수 있습니다.</p>
+          <div style="display:flex;gap:.625rem;flex-wrap:wrap;">
+            <a href="#" class="btn-pill">App Store</a>
+            <a href="#" class="btn-pill">Google Play</a>
+          </div>
+        </div>
+
+        <!-- 오프라인 카드 -->
+        <div class="card glass"
+          data-reveal data-x="50" data-delay="300" data-dur="750"
+          style="padding:2.25rem 2rem 2.5rem;transform:translateX(50px);transition-duration:750ms;">
+          <p style="font-size:.6875rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);margin-bottom:1rem;">Offline</p>
+          <h3 style="font-size:1.5rem;font-weight:700;letter-spacing:-.02em;margin-bottom:.75rem;">웰라이프 프로그램</h3>
+          <p style="font-size:.9rem;color:var(--muted);line-height:1.7;margin-bottom:1.75rem;max-width:400px;">전문 퍼실리테이터와 함께하는 그룹 워크샵. 삶의 의미를 나누고, 나만의 유언을 완성하는 특별한 시간.</p>
+          <a href="#contact" style="display:inline-flex;align-items:center;gap:.375rem;font-size:.875rem;font-weight:600;color:var(--accent);text-decoration:none;" onmouseover="this.style.opacity='.7'" onmouseout="this.style.opacity='1'">
+            참여 신청하기
+            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- B2B 벤토 -->
+    <div>
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem;">
+        <span style="font-size:.6875rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.7);">B2B</span>
+        <span style="font-size:.75rem;color:var(--muted2);">기업 / 기관</span>
+      </div>
+      <div style="display:grid;gap:1rem;" id="b2b-grid">
+
+        <div class="card glass"
+          data-reveal data-y="40" data-delay="200" data-dur="700"
+          style="padding:2rem;transform:translateY(40px);transition-duration:700ms;">
+          <p style="font-size:.6875rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);margin-bottom:.875rem;">Welfare</p>
+          <h3 style="font-size:1.125rem;font-weight:700;letter-spacing:-.02em;margin-bottom:.625rem;">임직원 웰페어 프로그램</h3>
+          <p style="font-size:.875rem;color:var(--muted);line-height:1.7;">기업 임직원의 심리적 안녕과 삶의 질 향상을 위한 맞춤형 웰다잉 교육 프로그램 제공.</p>
+        </div>
+
+        <div class="card glass"
+          data-reveal data-y="40" data-delay="300" data-dur="700"
+          style="padding:2rem;transform:translateY(40px);transition-duration:700ms;">
+          <p style="font-size:.6875rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);margin-bottom:.875rem;">CSR</p>
+          <h3 style="font-size:1.125rem;font-weight:700;letter-spacing:-.02em;margin-bottom:.625rem;">사회공헌 협업</h3>
+          <p style="font-size:.875rem;color:var(--muted);line-height:1.7;">사회적 가치를 실현하는 CSR 프로그램으로 웰다잉 문화 확산에 함께합니다.</p>
+        </div>
+
+        <div class="card glass"
+          data-reveal data-y="40" data-delay="400" data-dur="700"
+          style="padding:2rem;transform:translateY(40px);transition-duration:700ms;">
+          <p style="font-size:.6875rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);margin-bottom:.875rem;">Talk</p>
+          <h3 style="font-size:1.125rem;font-weight:700;letter-spacing:-.02em;margin-bottom:.625rem;">강연 · 세미나</h3>
+          <p style="font-size:.875rem;color:var(--muted);line-height:1.7;">웰다잉 전문 강사진이 직접 찾아가는 기업 강연 및 임원 세미나 프로그램.</p>
+        </div>
+
+      </div>
+
+      <div style="margin-top:1.5rem;" data-reveal data-y="16" data-delay="500" data-dur="600" style="transform:translateY(16px);transition-duration:600ms;">
+        <a href="#contact" style="display:inline-flex;align-items:center;gap:.375rem;font-size:.875rem;font-weight:600;color:var(--accent);text-decoration:none;" onmouseover="this.style.opacity='.7'" onmouseout="this.style.opacity='1'">
+          기업 협업 문의하기
+          <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<style>
+  @media(min-width:768px){
+    #b2c-grid { grid-template-columns: 1fr 1fr; }
+    #b2b-grid { grid-template-columns: 1fr 1fr 1fr; }
+  }
+</style>
+
+
+<!-- ═══════════════════════════════════
+     CONTACT
+═══════════════════════════════════ -->
+<section id="contact" style="padding:7rem 1.5rem;position:relative;overflow:hidden;">
+  <div class="orb" style="width:750px;height:750px;opacity:.15;background:radial-gradient(circle,rgba(212,132,74,.55) 0%,transparent 65%);top:-100px;left:50%;transform:translateX(-50%);"></div>
+
+  <div style="max-width:1200px;margin:0 auto;position:relative;z-index:1;">
+    <p class="section-label" data-reveal data-y="16" data-dur="600" style="transform:translateY(16px);transition-duration:600ms;">Contact</p>
+
+    <div style="display:grid;gap:4rem;align-items:start;" id="contact-grid">
+
+      <!-- 왼쪽 -->
+      <div data-reveal data-y="30" data-blur="12" data-delay="100" data-dur="800" style="transform:translateY(30px);filter:blur(12px);transition-duration:800ms;">
+        <h2 style="font-size:clamp(2.75rem,6vw,6rem);font-weight:800;line-height:1.0;letter-spacing:-.04em;margin-bottom:1.5rem;">
+          함께<br><span class="serif grad" style="font-size:.9em;">하시겠어요?</span>
+        </h2>
+        <p style="font-size:.9375rem;color:var(--muted);line-height:1.8;margin-bottom:2rem;max-width:320px;">
+          협업 문의, 프로그램 참여, 강연 신청 등 무엇이든 편하게 남겨주세요. 담당자가 빠른 시일 내에 연락드립니다.
+        </p>
+        <a href="mailto:hello@mangohada.com" style="font-size:.875rem;color:var(--muted2);text-decoration:none;transition:color .2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--muted2)'">
+          hello@mangohada.com
+        </a>
+      </div>
+
+      <!-- 오른쪽 폼 -->
+      <div data-reveal data-y="30" data-blur="12" data-delay="200" data-dur="800" style="transform:translateY(30px);filter:blur(12px);transition-duration:800ms;">
+        <form id="contact-form" onsubmit="handleSubmit(event)" novalidate style="display:flex;flex-direction:column;gap:1.125rem;">
+
+          <div>
+            <label style="display:block;font-size:.6875rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);margin-bottom:.625rem;">문의 유형</label>
+            <select name="inquiry_type" required class="field">
+              <option value="" disabled selected>선택해 주세요</option>
+              <option value="b2b">B2B 기업 협업 문의</option>
+              <option value="b2c">B2C 프로그램 참여 문의</option>
+              <option value="other">기타</option>
+            </select>
+          </div>
+
+          <div style="display:grid;gap:1.125rem;" id="np-grid">
+            <div>
+              <label style="display:block;font-size:.6875rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);margin-bottom:.625rem;">이름 / 담당자명</label>
+              <input type="text" name="name" required placeholder="홍길동" class="field">
+            </div>
+            <div>
+              <label style="display:block;font-size:.6875rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);margin-bottom:.625rem;">연락처</label>
+              <input type="tel" name="phone" required placeholder="010-0000-0000" class="field">
+            </div>
+          </div>
+
+          <div>
+            <label style="display:block;font-size:.6875rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);margin-bottom:.625rem;">이메일</label>
+            <input type="email" name="email" required placeholder="hello@example.com" class="field">
+          </div>
+
+          <div>
+            <label style="display:block;font-size:.6875rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);margin-bottom:.625rem;">문의 내용</label>
+            <textarea name="message" required rows="4" placeholder="문의하실 내용을 자유롭게 작성해 주세요." class="field" style="resize:none;"></textarea>
+          </div>
+
+          <button type="submit" id="submit-btn" class="btn-w" style="width:100%;justify-content:center;padding:1rem;font-size:.9375rem;margin-top:.5rem;">
+            문의 보내기
+          </button>
+        </form>
+
+        <div id="success-msg" style="display:none;padding:3.5rem 0 1rem;">
+          <p style="font-size:3rem;font-weight:800;letter-spacing:-.04em;margin-bottom:1rem;" class="grad">감사합니다.</p>
+          <p style="font-size:.9375rem;color:var(--muted);line-height:1.75;">문의가 정상적으로 접수되었습니다.<br>담당자가 빠른 시일 내에 연락드리겠습니다.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<style>
+  @media(min-width:768px){
+    #contact-grid { grid-template-columns: 1fr 1fr; }
+    #np-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+
+
+<!-- ═══════════════════════════════════
+     FOOTER
+═══════════════════════════════════ -->
+<footer style="border-top:1px solid var(--border);padding:2rem 1.5rem;">
+  <div style="max-width:1200px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;">
+    <p style="font-size:.9375rem;font-weight:700;">망고하다</p>
+    <div style="display:flex;flex-wrap:wrap;gap:1.5rem;font-size:.8125rem;color:var(--muted2);">
+      <a href="#" style="color:inherit;text-decoration:none;transition:color .2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--muted2)'">개인정보처리방침</a>
+      <a href="#" style="color:inherit;text-decoration:none;transition:color .2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--muted2)'">이용약관</a>
+      <span>© 2025 망고하다.</span>
+    </div>
+  </div>
+</footer>
+
+
+<!-- ═══════════════════════════════════
+     SCRIPTS
+═══════════════════════════════════ -->
+<script>
+  // Supabase
+  const SUPABASE_URL      = 'YOUR_SUPABASE_URL';
+  const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+  let db = SUPABASE_URL !== 'YOUR_SUPABASE_URL'
+    ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+  // 모바일 메뉴
+  function toggleMob() {
+    const m = document.getElementById('mob-menu');
+    m.style.display = m.style.display === 'none' ? 'block' : 'none';
+  }
+
+  // 스크롤 시 nav 배경
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 40) {
+      nav.style.background    = 'rgba(0,0,0,0.8)';
+      nav.style.backdropFilter = 'blur(20px)';
+    } else {
+      nav.style.background    = 'transparent';
+      nav.style.backdropFilter = 'none';
+    }
+  }, { passive: true });
+
+  // 리빌 (Synergeus 스타일 — blur + translateY/X)
+  const ease = 'cubic-bezier(.22,1,.36,1)';
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const el  = entry.target;
+      const dur = el.dataset.dur  || 800;
+      const del = el.dataset.delay || 0;
+      el.style.transitionDuration  = `${dur}ms`;
+      el.style.transitionDelay     = `${del}ms`;
+      el.style.transitionTimingFunction = ease;
+      el.classList.add('in');
+      io.unobserve(el);
+    });
+  }, { threshold: 0.06 });
+
+  document.querySelectorAll('[data-reveal]').forEach(el => {
+    const y = el.dataset.y || 0;
+    const x = el.dataset.x || 0;
+    const b = el.dataset.blur || 0;
+    if (y) el.style.transform = `translateY(${y}px)`;
+    if (x) el.style.transform = `translateX(${x}px)`;
+    if (b) el.style.filter    = `blur(${b}px)`;
+    io.observe(el);
+  });
+
+  // 문의 폼
+  async function handleSubmit(e) {
+    e.preventDefault();
+    const form = e.target;
+    const btn  = document.getElementById('submit-btn');
+    btn.disabled    = true;
+    btn.textContent = '전송 중…';
+
+    const payload = {
+      inquiry_type: form.inquiry_type.value,
+      name:         form.name.value.trim(),
+      phone:        form.phone.value.trim(),
+      email:        form.email.value.trim(),
+      message:      form.message.value.trim(),
+      created_at:   new Date().toISOString(),
+    };
+
+    try {
+      if (db) {
+        const { error } = await db.from('inquiries').insert([payload]);
+        if (error) throw error;
+      } else {
+        await new Promise(r => setTimeout(r, 600));
+        console.table(payload);
+      }
+      form.style.display = 'none';
+      document.getElementById('success-msg').style.display = 'block';
+    } catch (err) {
+      console.error(err);
+      btn.disabled    = false;
+      btn.textContent = '문의 보내기';
+      alert('전송 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+    }
+  }
+</script>
+</body>
+</html>
